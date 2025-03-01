@@ -1,0 +1,68 @@
+
+:root {
+  /* Colores base */
+  --color-dark-bg: #181818;
+  --color-dark-surface: #212121;
+  --color-dark-primary: #00d1c7;
+  --color-dark-secondary: #03DAC6;
+  --color-dark-error: #CF6679;
+  --color-dark-on-bg: #FFFFFF;
+  --color-dark-on-surface: #FFFFFF;
+  --color-dark-on-primary: #000000;
+  --color-dark-on-secondary: #000000;
+  --color-dark-on-error: #000000;
+  --dark-text: #E1E1E1;
+}
+
+/* Aplicar el fondo oscuro al html y body */
+html, body {
+  background-color: var(--color-dark-bg) !important;
+  min-height: 100%;
+}
+
+/* Clases para fondos */
+.bg-dark-bg {
+  background-color: var(--color-dark-bg) !important;
+}
+
+.bg-dark-surface {
+  background-color: var(--color-dark-surface) !important;
+}
+
+.bg-dark-primary {
+  background-color: var(--color-dark-primary) !important;
+}
+
+.bg-dark-secondary {
+  background-color: var(--color-dark-secondary) !important;
+}
+
+.bg-dark-error {
+  background-color: var(--color-dark-error) !important;
+}
+
+/* Clases para texto */
+.text-dark-text {
+  color: var(--dark-text) !important;
+}
+/* Bordes con mejor contraste */
+.border-dark-text\/10 {
+  border-color: rgba(225, 225, 225, 0.20) !important;
+}
+
+@layer components {
+  .bg-dark-bg {
+    background-color: var(--color-dark-bg);
+  }
+  .bg-dark-surface {
+    background-color: var(--color-dark-surface);
+  }
+  .text-dark-primary {
+    color: var(--color-dark-primary);
+  }
+  .bg-dark-primary {
+    background-color: var(--color-dark-primary);
+  }
+  /* ... resto de clases ... */
+}
+
