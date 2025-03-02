@@ -13,6 +13,35 @@ const api = axios.create({
   }
 });
 
+// Función para inicializar la API
+export const initializeApi = async () => {
+  try {
+    // Obtener CSRF token
+    await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
+      withCredentials: true
+    });
+    
+    // Obtener el token XSRF de la cookie
+    const xsrfToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('XSRF-TOKEN='))
+      ?.split('=')[1];
+
+    if (xsrfToken) {
+      // Decodificar el token (está en base64)
+      const decodedToken = decodeURIComponent(xsrfToken);
+      
+      // Configurar el header X-XSRF-TOKEN para todas las peticiones
+      api.defaults.headers.common['X-XSRF-TOKEN'] = decodedToken;
+    }
+  } catch (error) {
+    console.error('Error inicializando la API:', error);
+  }
+};
+
+// Llamar a initializeApi cuando se importe el módulo
+initializeApi();
+
 // Interceptor para obtener CSRF token antes de peticiones POST/PUT/DELETE
 api.interceptors.request.use(async (config) => {
   if (['post', 'put', 'delete'].includes(config.method)) {

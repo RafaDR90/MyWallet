@@ -12,8 +12,13 @@ import { useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
 import ForgotPassword from './pages/ForgotPassword'
 import ResetPassword from './pages/ResetPassword'
+import { initializeApi } from './services/api'
 
 function App() {
+  useEffect(() => {
+    initializeApi();
+  }, []);
+
   return (
     <Routes>
       <Route path="/auth/callback" element={<AuthCallbackHandler />} />
@@ -69,7 +74,6 @@ function AuthCallbackHandler() {
     const name = params.get('name')
     const avatar = params.get('avatar')
 
-    console.log('Parámetros recibidos en callback:', {
       token, email, name, avatar
     })
 
