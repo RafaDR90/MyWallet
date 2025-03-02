@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ export default function ResetPassword() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/api/reset-password', {
+      const response = await fetch(`${API_URL}/reset-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

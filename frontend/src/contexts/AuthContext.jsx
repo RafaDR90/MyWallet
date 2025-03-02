@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 export const AuthContext = createContext();
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
@@ -11,7 +13,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:8000/api/login', {
+      const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +54,7 @@ export function AuthProvider({ children }) {
   };
 
   const loginWithGoogle = () => {
-    const googleAuthUrl = 'http://localhost:8000/api/auth/google';
+    const googleAuthUrl = `${API_URL}/auth/google`;
     console.log('1. Iniciando proceso de login con Google');
     console.log('2. URL de redirección:', googleAuthUrl);
     

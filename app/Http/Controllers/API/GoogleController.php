@@ -20,13 +20,13 @@ class GoogleController extends Controller
                 ->getTargetUrl();
             
             Log::info('2. URL de Google generada', ['url' => $url]);
-            return redirect()->away($url);
+            return redirect()->away(env('FRONTEND_URL') . '/login?error=google_redirect_failed');
         } catch (Exception $e) {
             Log::error('Error en redirectToGoogle', [
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->away('http://localhost:5173/login?error=google_redirect_failed');
+            return redirect()->away(env('FRONTEND_URL') . '/login?error=google_redirect_failed');
         }
     }
 
@@ -63,7 +63,7 @@ class GoogleController extends Controller
             $user->tokens()->delete();
             $token = $user->createToken('auth-token')->plainTextToken;
             
-            $redirectUrl = 'http://localhost:5173/auth/callback?' . http_build_query([
+            $redirectUrl = env('FRONTEND_URL') . '/auth/callback?' . http_build_query([
                 'token' => $token,
                 'email' => $user->email,
                 'name' => $user->name,
@@ -77,7 +77,7 @@ class GoogleController extends Controller
             Log::error('Error en handleGoogleCallback: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            return redirect()->away('http://localhost:5173/login?error=auth_failed');
+            return redirect()->away(env('FRONTEND_URL') . '/login?error=auth_failed');
         }
     }
 }
