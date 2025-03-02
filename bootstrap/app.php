@@ -17,6 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
+        
+        // Excluir todas las rutas API de la validación CSRF
+        $middleware->validateCsrfTokens([
+            'api/*',
+            'sanctum/csrf-cookie',
+            'login',
+            'logout',
+            'register'
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
