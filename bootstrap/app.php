@@ -12,8 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->api(prepend: [
+        $middleware->api([
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            \App\Http\Middleware\ApiCsrfMiddleware::class,
         ]);
 
         $middleware->alias([
@@ -21,7 +22,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
-        $middleware->prepend(\App\Http\Middleware\ApiCsrfMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
