@@ -22,8 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->statefulApi();
         
-        // No validar CSRF en ninguna ruta
-        $middleware->validateCsrfTokens([]);
+        // Excluir todas las rutas API de la verificación CSRF
+        $middleware->validateCsrfTokens(['/api']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
