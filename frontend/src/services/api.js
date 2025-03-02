@@ -201,6 +201,11 @@ export const resetSeason = async (token) => {
 
 export const addToBanco = async (token, data) => {
   try {
+    // Primero, obtener el CSRF token
+    await fetch(`${API_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
+      credentials: 'include'
+    });
+
     const response = await fetch(`${API_URL}/balance/add-to-banco`, {
       method: 'POST',
       headers: {
@@ -208,6 +213,7 @@ export const addToBanco = async (token, data) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         cantidad: data.cantidad,
         descripcion: data.descripcion,
