@@ -1,56 +1,17 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const BASE_URL = API_URL.replace('/api', '');
 
-// Configurar axios con solo lo necesario
+// Configuración simple de axios
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
   }
 });
 
-// Función para inicializar la API
-export const initializeApi = async () => {
-  try {
-    // Obtener CSRF token
-    await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, {
-      withCredentials: true
-    });
-    
-    // Obtener el token XSRF de la cookie
-    const xsrfToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('XSRF-TOKEN='))
-      ?.split('=')[1];
-
-    if (xsrfToken) {
-      // Decodificar el token (está en base64)
-      const decodedToken = decodeURIComponent(xsrfToken);
-      
-      // Configurar el header X-XSRF-TOKEN para todas las peticiones
-      api.defaults.headers.common['X-XSRF-TOKEN'] = decodedToken;
-    }
-  } catch (error) {
-    console.error('Error inicializando la API:', error);
-  }
-};
-
-// Llamar a initializeApi cuando se importe el módulo
-initializeApi();
-
-// Interceptor para obtener CSRF token antes de peticiones POST/PUT/DELETE
-api.interceptors.request.use(async (config) => {
-  if (['post', 'put', 'delete'].includes(config.method)) {
-    await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
-  }
-  return config;
-});
-
-// Interceptor para manejar errores
+// Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
   response => response,
   error => {
@@ -61,70 +22,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-const handleResponse = async (response) => {
-  if (response.status === 401) {
-    // Token expirado o inválido
-    localStorage.removeItem('token');
-    window.location.href = '/login';
-    throw new Error('Sesión expirada');
-  }
-  
-  if (!response.ok) {
-    throw new Error('Error en la petición');
-  }
-  
-  return response.json();
-};
-
-// Función helper para obtener CSRF token
-const getCsrfToken = async () => {
-  try {
-    const response = await fetch(`${BASE_URL}/sanctum/csrf-cookie`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      }
-    });
-    
-    if (!response.ok) {
-      console.error('Error obteniendo CSRF token:', response.status);
-      throw new Error('Error obteniendo CSRF token');
-    }
-  } catch (error) {
-    console.error('Error en getCsrfToken:', error);
-    throw error;
-  }
-};
-
-// Función helper para hacer fetch con las configuraciones correctas
-const fetchWithConfig = async (url, options = {}) => {
-  const defaultOptions = {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest', // Añadir este header
-      ...options.headers,
-    },
-  };
-
-  if (options.method && ['POST', 'PUT', 'DELETE'].includes(options.method)) {
-    await getCsrfToken();
-  }
-
-  const response = await fetch(url, { ...defaultOptions, ...options });
-  
-  if (response.status === 419) {
-    console.error('CSRF token mismatch, intentando obtener nuevo token...');
-    await getCsrfToken();
-    return fetch(url, { ...defaultOptions, ...options });
-  }
-
-  return response;
-};
 
 export const getBalance = async (token) => {
   try {
