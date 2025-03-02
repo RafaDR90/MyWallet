@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { getExpenseTypes, createExpense } from '../services/api';
+import { getExpenseTypes, createExpense, createExpenseType } from '../services/api';
 
 export default function ExpenseForm({ onClose, onSuccess }) {
   const { token } = useAuth();
@@ -74,18 +74,7 @@ export default function ExpenseForm({ onClose, onSuccess }) {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/expense-types', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ nombre: newTypeName })
-      });
-
-      if (!response.ok) throw new Error('Error al crear el tipo de gasto');
-
-      const newType = await response.json();
+      const newType = await createExpenseType(token, { nombre: newTypeName });
       setExpenseTypes([...expenseTypes, newType]);
       setNewTypeName('');
       setShowNewTypeForm(false);
