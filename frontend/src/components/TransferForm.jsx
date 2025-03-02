@@ -95,7 +95,7 @@ export default function TransferForm({ onClose, onSuccess }) {
         <div className="text-center flex-1">
           <p className="text-sm text-dark-text/70">Desde</p>
           <p className="text-lg font-semibold text-dark-primary">
-            {formData.origen === 'banco' ? 'Banco' : 'Cajón'}
+            {formData.origen === 'banco' ? 'Banco' : 'Cartera'}
           </p>
           {balance && (
             <p className="text-[11px] text-gray-400">
@@ -117,7 +117,7 @@ export default function TransferForm({ onClose, onSuccess }) {
         <div className="text-center flex-1">
           <p className="text-sm text-dark-text/70">Hacia</p>
           <p className="text-lg font-semibold text-dark-primary">
-            {formData.origen === 'banco' ? 'Cajón' : 'Banco'}
+            {formData.origen === 'banco' ? 'Cartera' : 'Banco'}
           </p>
         </div>
       </div>

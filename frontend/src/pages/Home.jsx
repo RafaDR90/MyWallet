@@ -116,12 +116,10 @@ export default function Home({ refresh }) {
 
                 // Función para determinar el texto del balance
                 const getBalanceText = () => {
-                  // Solo mostrar "Banco:" si es un depósito al banco
                   if (movement.tipo_movimiento === 'deposito' && movement.tipo_deposito === 'banco') {
                     return 'Banco:';
                   }
-                  // Para todo lo demás (gastos, transferencias y depósitos al cajón)
-                  return 'Cajón:';
+                  return 'Cartera:';
                 };
 
                 return (
@@ -136,7 +134,7 @@ export default function Home({ refresh }) {
                         </p>
                         {movement.tipo_movimiento === 'transferencia' && (
                           <p className="text-[10px] text-gray-500">
-                            {movement.tipo === 'banco_a_cajon' ? 'Banco → Cajón' : 'Cajón → Banco'}
+                            {movement.tipo === 'banco_a_cajon' ? 'Banco → Cartera' : 'Cartera → Banco'}
                           </p>
                         )}
                       </div>

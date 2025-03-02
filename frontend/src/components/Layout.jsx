@@ -191,7 +191,7 @@ export function Layout() {
                       </p>
                     </div>
                     <div className="p-4 bg-dark-bg/30 rounded-lg">
-                      <p className="text-sm text-dark-primary mb-1">Cajón</p>
+                      <p className="text-sm text-dark-primary mb-1">Cartera</p>
                       <p className={`text-2xl font-bold ${balance.cajon < 0 ? 'text-dark-error' : 'text-dark-text'}`}>
                         €{balance.cajon.toFixed(2)}
                       </p>
