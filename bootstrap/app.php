@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,7 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->throttleApi([
-            'global' => RateLimiter::perMinute(100), // 60 peticiones por minuto globalmente
+            'global' => RateLimiter::perMinute(100), // 100 peticiones por minuto globalmente
             '*' => [
                 RateLimiter::perMinute(30)->by(fn () => request()->ip()), // 30 peticiones por minuto por IP
             ],
