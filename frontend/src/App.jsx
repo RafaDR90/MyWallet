@@ -74,9 +74,6 @@ function AuthCallbackHandler() {
     const name = params.get('name')
     const avatar = params.get('avatar')
 
-      token, email, name, avatar
-    })
-
     if (token) {
       localStorage.setItem('token', token)
       setToken(token)
@@ -84,6 +81,8 @@ function AuthCallbackHandler() {
       setIsAuthenticated(true)
       navigate('/', { replace: true })
     } else {
+      setIsAuthenticated(false)
+      setUser(null)
       navigate('/login', { replace: true })
     }
   }, [navigate, setToken, setUser, setIsAuthenticated])
