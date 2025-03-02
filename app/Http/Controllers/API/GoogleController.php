@@ -70,7 +70,6 @@ class GoogleController extends Controller
                 'avatar' => $user->avatar
             ]);
 
-            Log::info('Redirigiendo al frontend', ['url' => $redirectUrl]);
             return redirect()->away($redirectUrl);
 
         } catch (Exception $e) {
