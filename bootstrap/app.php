@@ -21,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->statefulApi();
-        $middleware->append(\App\Http\Middleware\ApiCsrfMiddleware::class);
+        $middleware->prepend(\App\Http\Middleware\ApiCsrfMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
