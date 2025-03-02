@@ -20,7 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
 
-        //
+        $middleware->statefulApi();
+        $middleware->append(\App\Http\Middleware\ApiCsrfMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
