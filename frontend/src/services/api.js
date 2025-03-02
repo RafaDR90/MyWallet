@@ -1,5 +1,26 @@
+import axios from 'axios';
+
 const API_URL = import.meta.env.VITE_API_URL;
 const BASE_URL = API_URL.replace('/api', ''); // https://web-production-c510.up.railway.app
+
+// Configurar axios
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+  }
+});
+
+// Interceptor para obtener CSRF token antes de peticiones POST/PUT/DELETE
+api.interceptors.request.use(async (config) => {
+  if (['post', 'put', 'delete'].includes(config.method)) {
+    await axios.get(`${BASE_URL}/sanctum/csrf-cookie`, { withCredentials: true });
+  }
+  return config;
+});
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
@@ -67,14 +88,14 @@ const fetchWithConfig = async (url, options = {}) => {
 
 export const getBalance = async (token) => {
   try {
-    const response = await fetchWithConfig(`${API_URL}/balance`, {
+    const response = await api.get('/balance', {
       headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+        'Authorization': `Bearer ${token}`
+      }
     });
-    return handleResponse(response);
+    return response.data;
   } catch (error) {
-    console.error('Error en getBalance:', error);
+    console.error('Error en getBalance:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -249,30 +270,19 @@ export const resetSeason = async (token) => {
 
 export const addToBanco = async (token, data) => {
   try {
-    console.log('Iniciando addToBanco...'); // Debug
-    console.log('URL:', `${API_URL}/balance/add-to-banco`); // Debug
-    
-    const response = await fetchWithConfig(`${API_URL}/balance/add-to-banco`, {
-      method: 'POST',
+    const response = await api.post('/balance/add-to-banco', {
+      cantidad: data.cantidad,
+      descripcion: data.descripcion,
+      tipo: data.tipo
+    }, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        cantidad: data.cantidad,
-        descripcion: data.descripcion,
-        tipo: data.tipo
-      }),
+        'Authorization': `Bearer ${token}`
+      }
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText); // Debug
-      throw new Error(`Error al procesar el ingreso: ${response.status}`);
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en addToBanco:', error);
+    console.error('Error en addToBanco:', error.response?.data || error.message);
     throw error;
   }
 };
