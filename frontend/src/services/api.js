@@ -211,3 +211,15 @@ export const transferMoney = async (token, transferData) => {
     throw error;
   }
 };
+
+export const createExpenseType = async (token, data) => {
+  try {
+    const response = await api.post('/expense-types', data, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error en createExpenseType:', error.response?.data || error.message);
+    throw error;
+  }
+};
