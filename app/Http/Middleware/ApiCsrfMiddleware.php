@@ -4,20 +4,31 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Session;
 
 class ApiCsrfMiddleware
 {
+    protected $except = [
+        'api/*',
+        'sanctum/csrf-cookie',
+        'login',
+        'logout'
+    ];
+
     public function handle(Request $request, Closure $next)
     {
-        if ($request->is('api/*')) {
-            // Desactivar completamente la verificación CSRF para rutas API
-            Session::forget('_token');
-            $request->headers->set('X-CSRF-TOKEN', null);
-            $request->headers->set('X-Requested-With', 'XMLHttpRequest');
-            return $next($request);
+        // Si la ruta coincide con alguna de las excepciones
+        foreach ($this->except as $excluded) {
+            if ($request->is($excluded)) {
+                // Añadir headers necesarios para API
+                $request->headers->set('Accept', 'application/json');
+                $request->headers->set('X-Requested-With', 'XMLHttpRequest');
+                
+                // Bypass CSRF para rutas API
+                return $next($request);
+            }
         }
 
+        // Para otras rutas, continuar con la verificación normal
         return $next($request);
     }
 } 
