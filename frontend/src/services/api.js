@@ -132,13 +132,6 @@ export const getMonthlyExpensesSummary = async (token, date) => {
 
 export const getExpensesByType = async (token, typeId, date, isSeasonView = false, page = 1, signal = null) => {
   try {
-    console.log('Calling API with params:', {
-      typeId,
-      date,
-      isSeasonView,
-      page
-    });
-
     const response = await fetch(
       `${API_URL}/expenses/by-type/${typeId}?date=${date}&isSeasonView=${isSeasonView}&page=${page}`, 
       {
@@ -155,11 +148,9 @@ export const getExpensesByType = async (token, typeId, date, isSeasonView = fals
     }
     
     const data = await response.json();
-    console.log('API response:', data);
     return data;
   } catch (error) {
     if (error.name === 'AbortError') {
-      console.log('Request aborted');
       throw error;
     }
     console.error('Error en getExpensesByType:', error);
@@ -260,7 +251,6 @@ export const getIncomeDetails = async (token, date, isSeasonView = false) => {
       ? `${API_URL}/movements/ingresos/temporada`
       : `${API_URL}/movements/ingresos/mes/${date}`;
 
-    console.log('Calling endpoint:', endpoint); // Debug log
 
     const response = await fetch(endpoint, {
       method: 'GET',
@@ -273,11 +263,6 @@ export const getIncomeDetails = async (token, date, isSeasonView = false) => {
 
     if (!response.ok) {
       const text = await response.text(); // Debug: ver el contenido real de la respuesta
-      console.error('Response not OK:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: text
-      });
       throw new Error('Error al obtener los ingresos');
     }
 
@@ -349,7 +334,6 @@ export const deleteTransfer = async (token, transferId) => {
 
 export const transferMoney = async (token, transferData) => {
   try {
-    console.log('Enviando datos de transferencia:', transferData); // Debug
 
     const response = await fetch(`${API_URL}/transfers`, {
       method: 'POST',
@@ -363,7 +347,6 @@ export const transferMoney = async (token, transferData) => {
     
     if (!response.ok) {
       const errorData = await response.json();
-      console.log('Error response:', errorData); // Debug
       throw new Error(errorData.message || 'Error al realizar la transferencia');
     }
     

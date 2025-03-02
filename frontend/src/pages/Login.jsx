@@ -37,7 +37,6 @@ export default function Login() {
 
   const handleGoogleLogin = (e) => {
     e.preventDefault();
-    console.log('Iniciando login con Google...');
     loginWithGoogle();
   };
 
