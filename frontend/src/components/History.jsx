@@ -21,6 +21,7 @@ export default function History({ refresh }) {
   const [seasonIncome, setSeasonIncome] = useState(0);
   const [refreshHistory, setRefreshHistory] = useState(0);
   const [selectedIncome, setSelectedIncome] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
 
   // Generar array de últimos 12 meses
   const getLast12Months = () => {
@@ -85,13 +86,16 @@ export default function History({ refresh }) {
   };
 
   const handleResetSeason = async () => {
-    if (window.confirm('¿Estás seguro de que quieres reiniciar la temporada? Esto establecerá un nuevo punto de inicio para el resumen de temporada.')) {
-      try {
-        await resetSeason(token);
-        await loadSeasonSummary();
-      } catch (error) {
-        console.error('Error:', error);
-      }
+    setShowResetModal(true);
+  };
+
+  const confirmReset = async () => {
+    try {
+      await resetSeason(token);
+      await loadSeasonSummary();
+      setShowResetModal(false);
+    } catch (error) {
+      console.error('Error:', error);
     }
   };
 
@@ -192,7 +196,7 @@ export default function History({ refresh }) {
                   <div
                     key={`monthly-${item.expense_type_id}-${item.tipo_nombre}`}
                     className="bg-dark-surface rounded-lg p-2 sm:p-4 cursor-pointer hover:bg-dark-surface-hover transition-colors"
-                    onClick={() => handleTypeClick(item.expense_type_id, item.tipo_nombre)}
+                    onClick={() => handleTypeClick(item.expense_type_id, item.tipo_nombre, false)}
                   >
                     <h4 className="font-semibold text-dark-text text-sm sm:text-base">
                       {item.tipo_nombre || 'Sin nombre'}
@@ -210,7 +214,9 @@ export default function History({ refresh }) {
               <h3 className="text-lg sm:text-xl font-semibold text-dark-primary">Resumen de Temporada</h3>
               <button
                 onClick={handleResetSeason}
-                className="px-4 py-2 bg-dark-primary hover:bg-dark-surface-hover text-black font-semibold rounded-lg text-sm transition-colors"
+                className="px-4 py-2 bg-dark-primary hover:bg-dark-surface-hover active:scale-95 
+                           active:bg-dark-primary/70 text-black font-semibold rounded-lg 
+                           transition-all transform text-sm"
               >
                 Reiniciar Temporada
               </button>
@@ -242,6 +248,37 @@ export default function History({ refresh }) {
                     </p>
                   </div>
                 ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showResetModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-dark-bg rounded-lg p-6 max-w-sm w-full mx-4">
+            <h3 className="text-lg font-semibold text-dark-primary mb-4">
+              Confirmar Reinicio
+            </h3>
+            <p className="text-dark-text mb-6">
+              ¿Estás seguro de que quieres reiniciar la temporada? Esto establecerá un nuevo punto de inicio para el resumen de temporada.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowResetModal(false)}
+                className="px-4 py-2 bg-dark-surface hover:bg-dark-surface-hover active:scale-95 
+                           active:bg-dark-surface-hover text-dark-text rounded-lg 
+                           transition-all transform"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmReset}
+                className="px-4 py-2 bg-dark-primary hover:bg-dark-primary/80 active:scale-95 
+                           active:bg-dark-primary/70 text-black font-semibold rounded-lg 
+                           transition-all transform"
+              >
+                Aceptar
+              </button>
             </div>
           </div>
         </div>

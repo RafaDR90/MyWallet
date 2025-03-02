@@ -14,6 +14,7 @@ use App\Http\Controllers\API\ExpenseTypeController;
 use App\Http\Controllers\API\MonthlyBudgetController;
 use App\Http\Controllers\API\TransferController;
 use App\Http\Controllers\API\MovementController;
+use App\Http\Controllers\API\GoogleController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -85,6 +86,11 @@ Route::post('/email/verification-notification', [EmailVerificationNotificationCo
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->middleware('auth:sanctum')
     ->name('logout');
+
+Route::group(['middleware' => ['web']], function() {
+    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
+    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+});
 
 
 

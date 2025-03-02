@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Error al iniciar sesión');
+        throw new Error(data.message || data.error || 'Error al iniciar sesión');
       }
 
       localStorage.setItem('token', data.token);
@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       return data;
     } catch (error) {
       console.error('Error en login:', error);
-      throw error;
+      throw new Error(error.message || 'Error al iniciar sesión');
     }
   };
 
@@ -51,13 +51,69 @@ export function AuthProvider({ children }) {
     logout();
   };
 
+  const loginWithGoogle = () => {
+    const googleAuthUrl = 'http://localhost:8000/api/auth/google';
+    console.log('1. Iniciando proceso de login con Google');
+    console.log('2. URL de redirección:', googleAuthUrl);
+    
+    // Agregar un pequeño delay para asegurarnos de ver los logs
+    setTimeout(() => {
+      console.log('3. Redirigiendo a Google...');
+      window.location.href = googleAuthUrl;
+    }, 100);
+  };
+
+  useEffect(() => {
+    const handleCallback = () => {
+      console.log('4. En el callback handler');
+      console.log('5. URL completa:', window.location.href);
+      
+      const params = new URLSearchParams(window.location.search);
+      console.log('6. Parámetros recibidos:', Object.fromEntries(params.entries()));
+      
+      const token = params.get('token');
+      const email = params.get('email');
+      const name = params.get('name');
+      const avatar = params.get('avatar');
+
+      console.log('7. Token recibido:', token);
+
+      if (token) {
+        console.log('8. Token encontrado, procediendo a guardar');
+        localStorage.setItem('token', token);
+        setToken(token);
+        setUser({ email, name, avatar });
+        setIsAuthenticated(true);
+        navigate('/', { replace: true });
+      }
+    };
+
+    console.log('9. Ruta actual:', window.location.pathname);
+    
+    if (window.location.pathname === '/auth/callback') {
+      console.log('10. Ejecutando callback handler');
+      handleCallback();
+    }
+  }, [navigate]);
+
+  // Agregar un useEffect para monitorear cambios en isAuthenticated
+  useEffect(() => {
+    console.log('Estado de autenticación:', isAuthenticated);
+    console.log('Token actual:', token);
+    console.log('Usuario actual:', user);
+  }, [isAuthenticated, token, user]);
+
   return (
     <AuthContext.Provider value={{
       token,
+      setToken,
       user,
+      setUser,
       isAuthenticated,
+      setIsAuthenticated,
       login,
       logout,
+      loginWithGoogle,
       handleTokenExpiration
     }}>
       {children}

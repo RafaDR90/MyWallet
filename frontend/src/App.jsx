@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import Layout from './components/Layout'
 import Home from './pages/Home'
 import Login from './pages/Login'
@@ -8,10 +8,13 @@ import Transfers from './pages/Transfers' */
 import ProtectedRoute from './components/ProtectedRoute'
 import AuthRoute from './components/AuthRoute'
 import './App.css'
+import { useEffect } from 'react'
+import { useAuth } from './hooks/useAuth'
 
 function App() {
   return (
     <Routes>
+      <Route path="/auth/callback" element={<AuthCallbackHandler />} />
       <Route path="/" element={<Layout />}>
         {/* Rutas protegidas */}
         <Route index element={
@@ -47,6 +50,36 @@ function App() {
       </Route>
     </Routes>
   )
+}
+
+// Componente para manejar el callback
+function AuthCallbackHandler() {
+  const navigate = useNavigate()
+  const { setToken, setUser, setIsAuthenticated } = useAuth()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const token = params.get('token')
+    const email = params.get('email')
+    const name = params.get('name')
+    const avatar = params.get('avatar')
+
+    console.log('Parámetros recibidos en callback:', {
+      token, email, name, avatar
+    })
+
+    if (token) {
+      localStorage.setItem('token', token)
+      setToken(token)
+      setUser({ email, name, avatar })
+      setIsAuthenticated(true)
+      navigate('/', { replace: true })
+    } else {
+      navigate('/login', { replace: true })
+    }
+  }, [navigate, setToken, setUser, setIsAuthenticated])
+
+  return <div>Autenticando...</div>
 }
 
 export default App

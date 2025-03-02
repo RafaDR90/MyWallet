@@ -190,7 +190,11 @@ export const addToBanco = async (token, data) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        cantidad: data.cantidad,
+        descripcion: data.descripcion,
+        tipo: data.tipo
+      }),
     });
     
     if (!response.ok) throw new Error('Error al procesar el ingreso');
