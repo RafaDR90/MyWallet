@@ -42,25 +42,24 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      // Primero limpiamos el estado local
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
-      setIsAuthenticated(false);
-
-      // Luego intentamos hacer logout en el backend
       if (token) {
         await fetch(`${API_URL}/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
           },
         });
       }
     } catch (error) {
       console.error('Error durante el logout:', error);
     } finally {
+      // Limpiar estado local independientemente del resultado de la petición
+      localStorage.removeItem('token');
+      setToken(null);
+      setUser(null);
+      setIsAuthenticated(false);
       navigate('/login');
     }
   };
