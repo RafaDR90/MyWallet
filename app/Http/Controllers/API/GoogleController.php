@@ -14,13 +14,9 @@ class GoogleController extends Controller
     {
         try {
             Log::info('1. Iniciando redirección a Google');
-            $url = Socialite::driver('google')
+            return Socialite::driver('google')
                 ->stateless()
-                ->redirect()
-                ->getTargetUrl();
-            
-            Log::info('2. URL de Google generada', ['url' => $url]);
-            return redirect()->away(env('FRONTEND_URL') . '/login?error=google_redirect_failed');
+                ->redirect();
         } catch (Exception $e) {
             Log::error('Error en redirectToGoogle', [
                 'message' => $e->getMessage(),

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -9,6 +9,16 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login, loginWithGoogle } = useAuth();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    if (error === 'google_redirect_failed') {
+      setError('Error al conectar con Google. Por favor, intenta de nuevo.');
+    } else if (error === 'auth_failed') {
+      setError('Error de autenticación con Google. Por favor, intenta de nuevo.');
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
