@@ -198,21 +198,25 @@ class ExpenseController extends Controller
         try {
             $userId = $request->user()->id;
             $date = $request->query('date');
-            $isSeasonView = $request->query('isSeasonView', false);
+            $isSeasonView = filter_var($request->query('isSeasonView', false), FILTER_VALIDATE_BOOLEAN);
+            
+            \Log::info('Getting expenses by type', [
+                'typeId' => $typeId,
+                'date' => $date,
+                'isSeasonView' => $isSeasonView
+            ]);
 
             $query = Expense::with('expenseType')
                 ->where('user_id', $userId)
                 ->where('expense_type_id', $typeId);
 
             if ($isSeasonView) {
-                // Si es vista de temporada, obtener la fecha de inicio
                 $seasonStart = DB::table('season_settings')
                     ->where('user_id', $userId)
                     ->value('season_start');
                 
                 $query->where('created_at', '>=', $seasonStart);
             } else {
-                // Si es vista mensual, filtrar por el mes seleccionado
                 $query->whereYear('fecha', substr($date, 0, 4))
                       ->whereMonth('fecha', substr($date, 5, 2));
             }
@@ -221,8 +225,16 @@ class ExpenseController extends Controller
                              ->orderBy('created_at', 'desc')
                              ->paginate(10);
 
+            \Log::info('Expenses query result', [
+                'count' => $expenses->count(),
+                'total' => $expenses->total()
+            ]);
+
             return response()->json($expenses);
         } catch (\Exception $e) {
+            \Log::error('Error getting expenses by type', [
+                'error' => $e->getMessage()
+            ]);
             return response()->json([
                 'message' => 'Error al obtener los gastos',
                 'error' => $e->getMessage()

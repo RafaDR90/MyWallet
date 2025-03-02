@@ -117,8 +117,15 @@ export const getMonthlyExpensesSummary = async (token, date) => {
   }
 };
 
-export const getExpensesByType = async (token, typeId, date, isSeasonView = false, page = 1) => {
+export const getExpensesByType = async (token, typeId, date, isSeasonView = false, page = 1, signal = null) => {
   try {
+    console.log('Calling API with params:', {
+      typeId,
+      date,
+      isSeasonView,
+      page
+    });
+
     const response = await fetch(
       `${API_URL}/expenses/by-type/${typeId}?date=${date}&isSeasonView=${isSeasonView}&page=${page}`, 
       {
@@ -126,6 +133,7 @@ export const getExpensesByType = async (token, typeId, date, isSeasonView = fals
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        signal,
       }
     );
     
@@ -133,8 +141,14 @@ export const getExpensesByType = async (token, typeId, date, isSeasonView = fals
       throw new Error('Error al obtener los gastos');
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log('API response:', data);
+    return data;
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.log('Request aborted');
+      throw error;
+    }
     console.error('Error en getExpensesByType:', error);
     throw error;
   }

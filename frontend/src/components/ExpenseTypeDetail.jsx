@@ -7,30 +7,44 @@ export default function ExpenseTypeDetail({ typeId, typeName, date, onBack, isSe
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const loadExpenses = async () => {
-    setLoading(true);
-    try {
-      const data = await getExpensesByType(token, typeId, date, isSeasonView, currentPage);
-      setExpenses(data.data);
-      setTotalPages(Math.ceil(data.total / data.per_page));
-      setHasMore(data.data.length === 10);
-      setError(null);
-    } catch (error) {
-      console.error('Error:', error);
-      setError('Error al cargar los gastos');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    let ignore = false;
+
+    const loadExpenses = async () => {
+      try {
+        const data = await getExpensesByType(token, typeId, date, isSeasonView, currentPage);
+        
+        if (!ignore) {
+          setExpenses(prev => 
+            currentPage === 1 ? data.data : [...prev, ...data.data]
+          );
+          setHasMore(currentPage < Math.ceil(data.total / data.per_page));
+          setLoading(false);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setError('Error al cargar los gastos');
+          setLoading(false);
+        }
+      }
+    };
+
     loadExpenses();
-  }, [typeId, date, currentPage, isSeasonView]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [token, typeId, date, isSeasonView, currentPage]);
+
+  // Reset cuando cambian los filtros principales
+  useEffect(() => {
+    setCurrentPage(1);
+    setExpenses([]);
+    setLoading(true);
+  }, [typeId, date, isSeasonView]);
 
   return (
     <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -45,7 +59,7 @@ export default function ExpenseTypeDetail({ typeId, typeName, date, onBack, isSe
       </div>
       
       <div className="bg-dark-bg rounded-lg shadow p-3 sm:p-6">
-        {loading && page === 1 ? (
+        {loading && expenses.length === 0 ? (
           <div className="text-center py-4">Cargando...</div>
         ) : error ? (
           <div className="text-center text-dark-error py-4">{error}</div>
@@ -57,7 +71,9 @@ export default function ExpenseTypeDetail({ typeId, typeName, date, onBack, isSe
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-dark-text text-sm sm:text-base">{expense.descripcion}</p>
-                      <p className="text-dark-text-secondary text-xs">{new Date(expense.fecha).toLocaleDateString()}</p>
+                      <p className="text-dark-text-secondary text-xs">
+                        {new Date(expense.fecha).toLocaleDateString()}
+                      </p>
                     </div>
                     <p className="text-dark-text text-sm sm:text-base font-semibold">
                       -{parseFloat(expense.monto).toFixed(2)} €
@@ -67,13 +83,17 @@ export default function ExpenseTypeDetail({ typeId, typeName, date, onBack, isSe
               ))}
             </div>
             
-            {hasMore && (
+            {hasMore && !loading && (
               <button
                 onClick={() => setCurrentPage(p => p + 1)}
                 className="mt-4 w-full py-2 text-dark-text text-sm bg-dark-surface hover:bg-dark-surface-hover rounded-lg transition-colors"
               >
-                {loading ? 'Cargando...' : 'Cargar más'}
+                Cargar más
               </button>
+            )}
+            
+            {loading && expenses.length > 0 && (
+              <div className="text-center py-4">Cargando más...</div>
             )}
           </>
         )}

@@ -117,6 +117,7 @@ export default function History({ refresh }) {
   }, [refresh, selectedDate, token]); // Añadimos todas las dependencias necesarias
 
   const handleTypeClick = (typeId, typeName, isSeason = false) => {
+    console.log('Click en tipo:', { typeId, typeName, isSeason }); // Debug log
     if (typeId === 'ingresos-monthly' || typeId === 'ingresos-season') {
       setSelectedIncome(true);
       setIsSeasonView(isSeason);
@@ -196,7 +197,10 @@ export default function History({ refresh }) {
                   <div
                     key={`monthly-${item.expense_type_id}-${item.tipo_nombre}`}
                     className="bg-dark-surface rounded-lg p-2 sm:p-4 cursor-pointer hover:bg-dark-surface-hover transition-colors"
-                    onClick={() => handleTypeClick(item.expense_type_id, item.tipo_nombre, false)}
+                    onClick={() => {
+                      console.log('Click en gasto mensual:', item.tipo_nombre); // Debug log
+                      handleTypeClick(item.expense_type_id, item.tipo_nombre, false);
+                    }}
                   >
                     <h4 className="font-semibold text-dark-text text-sm sm:text-base">
                       {item.tipo_nombre || 'Sin nombre'}
@@ -238,7 +242,10 @@ export default function History({ refresh }) {
                   <div
                     key={`season-${item.expense_type_id}-${item.tipo_nombre}`}
                     className="bg-dark-surface rounded-lg p-2 sm:p-4 cursor-pointer hover:bg-dark-surface-hover transition-colors"
-                    onClick={() => handleTypeClick(item.expense_type_id, item.tipo_nombre, true)}
+                    onClick={() => {
+                      console.log('Click en gasto de temporada:', item.tipo_nombre); // Debug log
+                      handleTypeClick(item.expense_type_id, item.tipo_nombre, true);
+                    }}
                   >
                     <h4 className="font-semibold text-dark-text text-sm sm:text-base">
                       {item.tipo_nombre || 'Sin nombre'}
