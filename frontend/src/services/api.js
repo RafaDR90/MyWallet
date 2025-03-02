@@ -1,4 +1,5 @@
 const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = API_URL.replace('/api', ''); // https://web-production-c510.up.railway.app
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
@@ -17,9 +18,24 @@ const handleResponse = async (response) => {
 
 // Función helper para obtener CSRF token
 const getCsrfToken = async () => {
-  await fetch(`${API_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
-    credentials: 'include'
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/sanctum/csrf-cookie`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('Error obteniendo CSRF token:', response.status);
+      throw new Error('Error obteniendo CSRF token');
+    }
+  } catch (error) {
+    console.error('Error en getCsrfToken:', error);
+    throw error;
+  }
 };
 
 // Función helper para hacer fetch con las configuraciones correctas
@@ -29,6 +45,7 @@ const fetchWithConfig = async (url, options = {}) => {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest', // Añadir este header
       ...options.headers,
     },
   };
@@ -37,7 +54,15 @@ const fetchWithConfig = async (url, options = {}) => {
     await getCsrfToken();
   }
 
-  return fetch(url, { ...defaultOptions, ...options });
+  const response = await fetch(url, { ...defaultOptions, ...options });
+  
+  if (response.status === 419) {
+    console.error('CSRF token mismatch, intentando obtener nuevo token...');
+    await getCsrfToken();
+    return fetch(url, { ...defaultOptions, ...options });
+  }
+
+  return response;
 };
 
 export const getBalance = async (token) => {
@@ -224,6 +249,9 @@ export const resetSeason = async (token) => {
 
 export const addToBanco = async (token, data) => {
   try {
+    console.log('Iniciando addToBanco...'); // Debug
+    console.log('URL:', `${API_URL}/balance/add-to-banco`); // Debug
+    
     const response = await fetchWithConfig(`${API_URL}/balance/add-to-banco`, {
       method: 'POST',
       headers: {
@@ -236,7 +264,12 @@ export const addToBanco = async (token, data) => {
       }),
     });
     
-    if (!response.ok) throw new Error('Error al procesar el ingreso');
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', errorText); // Debug
+      throw new Error(`Error al procesar el ingreso: ${response.status}`);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error('Error en addToBanco:', error);

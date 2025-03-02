@@ -1,6 +1,8 @@
 <?php
 
 use Laravel\Sanctum\Sanctum;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 
 return [
 
@@ -16,9 +18,8 @@ return [
     */
 
     'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:3000,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
+        '%s%s',
+        'localhost,localhost:5173,127.0.0.1,127.0.0.1:8000,::1',
         env('FRONTEND_URL') ? ','.parse_url(env('FRONTEND_URL'), PHP_URL_HOST) : ''
     ))),
 
@@ -77,9 +78,8 @@ return [
 
     'middleware' => [
         'authenticate_session' => Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
-        'encrypt_cookies' => Illuminate\Cookie\Middleware\EncryptCookies::class,
-        // Comentamos o eliminamos la validación CSRF para las rutas API
-        // 'validate_csrf_token' => Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        'encrypt_cookies' => EncryptCookies::class,
+        'verify_csrf_token' => VerifyCsrfToken::class,
     ],
 
 ];
