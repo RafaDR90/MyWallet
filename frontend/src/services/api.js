@@ -1,17 +1,30 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
+const handleResponse = async (response) => {
+  if (response.status === 401) {
+    // Token expirado o inválido
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    throw new Error('Sesión expirada');
+  }
+  
+  if (!response.ok) {
+    throw new Error('Error en la petición');
+  }
+  
+  return response.json();
+};
+
 export const getBalance = async (token) => {
   try {
     const response = await fetch(`${API_URL}/balance`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
     });
     
-    if (!response.ok) throw new Error('Error al obtener el balance');
-    
-    return await response.json();
+    return handleResponse(response);
   } catch (error) {
     console.error('Error en getBalance:', error);
     throw error;

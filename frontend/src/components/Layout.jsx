@@ -23,7 +23,9 @@ export function Layout() {
   const [expenseFormKey, setExpenseFormKey] = useState(0);
   const [depositFormKey, setDepositFormKey] = useState(0);
 
-  const loadBalance = async () => {
+  const loadBalanceData = async () => {
+    if (!isAuthenticated || !token) return; // No cargar si no hay autenticación
+    
     try {
       const data = await getBalance(token);
       const processedBalance = {
@@ -32,17 +34,20 @@ export function Layout() {
         cajon: parseFloat(data.cajon)
       };
       setBalance(processedBalance);
+      setError(null);
     } catch (error) {
       console.error('Error cargando balance:', error);
-      setError(error.message);
+      if (error.response?.status === 401) {
+        logout(); // Cerrar sesión si el token no es válido
+      } else {
+        setError(error.message);
+      }
     }
   };
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      loadBalance();
-    }
-  }, [isAuthenticated, token]);
+    loadBalanceData();
+  }, [isAuthenticated, token, logout]);
 
   const formatBalance = (value) => {
     if (!value) return '0.00';
@@ -97,7 +102,7 @@ export function Layout() {
             onClose={() => setIsPanelOpen(false)}
             onSuccess={() => {
               setIsPanelOpen(false);
-              loadBalance();
+              loadBalanceData();
               handleRefresh();
             }}
           />
@@ -118,7 +123,7 @@ export function Layout() {
             onClose={() => setIsPanelOpen(false)} 
             onSuccess={() => {
               setIsPanelOpen(false);
-              loadBalance();
+              loadBalanceData();
               handleRefresh();
             }}
           />
@@ -294,10 +299,10 @@ export function Layout() {
           onSuccess={() => {
             setIsDepositPanelOpen(false);
             handleRefresh();
-            loadBalance();
+            loadBalanceData();
           }}
           onClose={() => setIsDepositPanelOpen(false)}
-          refreshBalance={loadBalance}
+          refreshBalance={loadBalanceData}
         />
       </SlidePanel>
 
