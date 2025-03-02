@@ -58,10 +58,9 @@ export function AuthProvider({ children }) {
     console.log('1. Iniciando proceso de login con Google');
     console.log('2. URL de redirección:', googleAuthUrl);
     
-    // Agregar un pequeño delay para asegurarnos de ver los logs
     setTimeout(() => {
-      console.log('3. Redirigiendo a Google...');
-      window.location.href = googleAuthUrl;
+        console.log('3. Redirigiendo a Google...');
+        window.location.href = googleAuthUrl;
     }, 100);
   };
 

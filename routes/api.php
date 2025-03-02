@@ -87,8 +87,8 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
 Route::group(['middleware' => ['web']], function() {
-    Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
-    Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
+    Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle']);
+    Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 });
 
 
