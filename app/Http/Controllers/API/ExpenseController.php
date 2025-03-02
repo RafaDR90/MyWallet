@@ -200,11 +200,7 @@ class ExpenseController extends Controller
             $date = $request->query('date');
             $isSeasonView = filter_var($request->query('isSeasonView', false), FILTER_VALIDATE_BOOLEAN);
             
-            \Log::info('Getting expenses by type', [
-                'typeId' => $typeId,
-                'date' => $date,
-                'isSeasonView' => $isSeasonView
-            ]);
+          
 
             $query = Expense::with('expenseType')
                 ->where('user_id', $userId)
@@ -225,16 +221,11 @@ class ExpenseController extends Controller
                              ->orderBy('created_at', 'desc')
                              ->paginate(10);
 
-            \Log::info('Expenses query result', [
-                'count' => $expenses->count(),
-                'total' => $expenses->total()
-            ]);
+        
 
             return response()->json($expenses);
         } catch (\Exception $e) {
-            \Log::error('Error getting expenses by type', [
-                'error' => $e->getMessage()
-            ]);
+           
             return response()->json([
                 'message' => 'Error al obtener los gastos',
                 'error' => $e->getMessage()
