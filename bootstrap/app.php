@@ -16,14 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
-        $middleware->alias([
-            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
-        ]);
-
         $middleware->statefulApi();
-        
-        // Excluir todas las rutas API de la verificación CSRF
-        $middleware->validateCsrfTokens(['/api']);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

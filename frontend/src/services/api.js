@@ -1,16 +1,15 @@
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
-const BASE_URL = API_URL.replace('/api', ''); // https://web-production-c510.up.railway.app
+const BASE_URL = API_URL.replace('/api', '');
 
-// Configurar axios
+// Configurar axios con solo lo necesario
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest'
+    'Accept': 'application/json'
   }
 });
 
@@ -21,6 +20,18 @@ api.interceptors.request.use(async (config) => {
   }
   return config;
 });
+
+// Interceptor para manejar errores
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 const handleResponse = async (response) => {
   if (response.status === 401) {
@@ -89,9 +100,7 @@ const fetchWithConfig = async (url, options = {}) => {
 export const getBalance = async (token) => {
   try {
     const response = await api.get('/balance', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.data;
   } catch (error) {
@@ -102,184 +111,98 @@ export const getBalance = async (token) => {
 
 export const getLastMovements = async (token, page = 1) => {
   try {
-    if (!token) {
-      throw new Error('No hay token disponible');
-    }
-
-    const response = await fetch(`${API_URL}/movements?page=${page}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
+    const response = await api.get(`/movements?page=${page}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Sesión expirada o inválida');
-      }
-      throw new Error('Error al obtener los movimientos');
-    }
-    
-    const data = await response.json();
-    return data.data; // Laravel pagination incluye los datos en data
+    return response.data.data;
   } catch (error) {
-    console.error('Error en getLastMovements:', error);
+    console.error('Error en getLastMovements:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getExpenseTypes = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/expense-types`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
+    const response = await api.get('/expense-types', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-      throw new Error('Sesión expirada');
-    }
-    
-    if (!response.ok) throw new Error('Error al obtener los tipos de gasto');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en getExpenseTypes:', error);
+    console.error('Error en getExpenseTypes:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const createExpense = async (token, expenseData) => {
   try {
-    const response = await fetch(`${API_URL}/expenses`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(expenseData)
+    const response = await api.post('/expenses', expenseData, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-      throw new Error('Sesión expirada');
-    }
-    
-    if (!response.ok) throw new Error('Error al crear el gasto');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en createExpense:', error);
+    console.error('Error en createExpense:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getMonthlyExpensesSummary = async (token, date) => {
   try {
-    const response = await fetch(`${API_URL}/expenses/monthly-summary?date=${date}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.get(`/expenses/monthly-summary?date=${date}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) {
-      throw new Error('Error al obtener el resumen mensual');
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en getMonthlyExpensesSummary:', error);
+    console.error('Error en getMonthlyExpensesSummary:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getExpensesByType = async (token, typeId, date, isSeasonView = false, page = 1, signal = null) => {
   try {
-    const response = await fetch(
-      `${API_URL}/expenses/by-type/${typeId}?date=${date}&isSeasonView=${isSeasonView}&page=${page}`, 
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        signal,
-      }
-    );
-    
-    if (!response.ok) {
-      throw new Error('Error al obtener los gastos');
-    }
-    
-    const data = await response.json();
-    return data;
+    const response = await api.get(`/expenses/by-type/${typeId}`, {
+      params: { date, isSeasonView, page },
+      headers: { 'Authorization': `Bearer ${token}` },
+      signal
+    });
+    return response.data;
   } catch (error) {
-    if (error.name === 'AbortError') {
+    if (axios.isCancel(error)) {
       throw error;
     }
-    console.error('Error en getExpensesByType:', error);
+    console.error('Error en getExpensesByType:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getSeasonExpensesSummary = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/expenses/season-summary`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.get('/expenses/season-summary', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) {
-      throw new Error('Error al obtener el resumen de temporada');
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en getSeasonExpensesSummary:', error);
+    console.error('Error en getSeasonExpensesSummary:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const resetSeason = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/expenses/reset-season`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+    const response = await api.post('/expenses/reset-season', {}, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) {
-      throw new Error('Error al reiniciar la temporada');
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en resetSeason:', error);
+    console.error('Error en resetSeason:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const addToBanco = async (token, data) => {
   try {
-    const response = await api.post('/balance/add-to-banco', {
-      cantidad: data.cantidad,
-      descripcion: data.descripcion,
-      tipo: data.tipo
-    }, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+    const response = await api.post('/balance/add-to-banco', data, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
     return response.data;
   } catch (error) {
     console.error('Error en addToBanco:', error.response?.data || error.message);
@@ -289,21 +212,12 @@ export const addToBanco = async (token, data) => {
 
 export const addToCajon = async (token, data) => {
   try {
-    const response = await fetch(`${API_URL}/balance/add-to-cajon`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(data),
+    const response = await api.post('/balance/add-to-cajon', data, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) throw new Error('Error al procesar el ingreso');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en addToCajon:', error);
+    console.error('Error en addToCajon:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -311,111 +225,63 @@ export const addToCajon = async (token, data) => {
 export const getIncomeDetails = async (token, date, isSeasonView = false) => {
   try {
     const endpoint = isSeasonView 
-      ? `${API_URL}/movements/ingresos/temporada`
-      : `${API_URL}/movements/ingresos/mes/${date}`;
-
-
-    const response = await fetch(endpoint, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+      ? '/movements/ingresos/temporada'
+      : `/movements/ingresos/mes/${date}`;
+    
+    const response = await api.get(endpoint, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-
-    if (!response.ok) {
-      const text = await response.text(); // Debug: ver el contenido real de la respuesta
-      throw new Error('Error al obtener los ingresos');
-    }
-
-    const data = await response.json();
-    return data;
+    return response.data;
   } catch (error) {
-    console.error('Error en getIncomeDetails:', error);
+    console.error('Error en getIncomeDetails:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getTransfers = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/transfers`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
+    const response = await api.get('/transfers', {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) throw new Error('Error al obtener las transferencias');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en getTransfers:', error);
+    console.error('Error en getTransfers:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const createTransfer = async (token, transferData) => {
   try {
-    const response = await fetch(`${API_URL}/transfers`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(transferData)
+    const response = await api.post('/transfers', transferData, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) throw new Error('Error al realizar la transferencia');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en createTransfer:', error);
+    console.error('Error en createTransfer:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const deleteTransfer = async (token, transferId) => {
   try {
-    const response = await fetch(`${API_URL}/transfers/${transferId}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
+    const response = await api.delete(`/transfers/${transferId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) throw new Error('Error al eliminar la transferencia');
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en deleteTransfer:', error);
+    console.error('Error en deleteTransfer:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const transferMoney = async (token, transferData) => {
   try {
-
-    const response = await fetch(`${API_URL}/transfers`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(transferData)
+    const response = await api.post('/transfers', transferData, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Error al realizar la transferencia');
-    }
-    
-    return await response.json();
+    return response.data;
   } catch (error) {
-    console.error('Error en transferMoney:', error);
+    console.error('Error en transferMoney:', error.response?.data || error.message);
     throw error;
   }
 };
