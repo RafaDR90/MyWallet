@@ -15,15 +15,38 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
+// Función helper para obtener CSRF token
+const getCsrfToken = async () => {
+  await fetch(`${API_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
+    credentials: 'include'
+  });
+};
+
+// Función helper para hacer fetch con las configuraciones correctas
+const fetchWithConfig = async (url, options = {}) => {
+  const defaultOptions = {
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      ...options.headers,
+    },
+  };
+
+  if (options.method && ['POST', 'PUT', 'DELETE'].includes(options.method)) {
+    await getCsrfToken();
+  }
+
+  return fetch(url, { ...defaultOptions, ...options });
+};
+
 export const getBalance = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/balance`, {
+    const response = await fetchWithConfig(`${API_URL}/balance`, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
     });
-    
     return handleResponse(response);
   } catch (error) {
     console.error('Error en getBalance:', error);
@@ -201,19 +224,11 @@ export const resetSeason = async (token) => {
 
 export const addToBanco = async (token, data) => {
   try {
-    // Primero, obtener el CSRF token
-    await fetch(`${API_URL.replace('/api', '')}/sanctum/csrf-cookie`, {
-      credentials: 'include'
-    });
-
-    const response = await fetch(`${API_URL}/balance/add-to-banco`, {
+    const response = await fetchWithConfig(`${API_URL}/balance/add-to-banco`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
       },
-      credentials: 'include',
       body: JSON.stringify({
         cantidad: data.cantidad,
         descripcion: data.descripcion,
@@ -222,7 +237,6 @@ export const addToBanco = async (token, data) => {
     });
     
     if (!response.ok) throw new Error('Error al procesar el ingreso');
-    
     return await response.json();
   } catch (error) {
     console.error('Error en addToBanco:', error);
