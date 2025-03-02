@@ -15,6 +15,7 @@ use App\Http\Controllers\API\MonthlyBudgetController;
 use App\Http\Controllers\API\TransferController;
 use App\Http\Controllers\API\MovementController;
 use App\Http\Controllers\API\GoogleController;
+use Illuminate\Support\Facades\Mail;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -67,9 +68,7 @@ Route::post('/login', [AuthenticatedSessionController::class, 'store'])
     ->middleware('guest')
     ->name('login');
 
-Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])
-    ->middleware('guest')
-    ->name('password.email');
+Route::post('/forgot-password', [PasswordResetLinkController::class, 'store']);
 
 Route::post('/reset-password', [NewPasswordController::class, 'store'])
     ->middleware('guest')
@@ -91,6 +90,8 @@ Route::group(['middleware' => ['web']], function() {
     Route::get('auth/google', [GoogleController::class, 'redirectToGoogle']);
     Route::get('auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 });
+
+
 
 
 

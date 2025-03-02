@@ -10,6 +10,8 @@ import AuthRoute from './components/AuthRoute'
 import './App.css'
 import { useEffect } from 'react'
 import { useAuth } from './hooks/useAuth'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 
 function App() {
   return (
@@ -47,6 +49,9 @@ function App() {
 
         {/* Redirigir cualquier otra ruta a login si no está autenticado, o a home si lo está */}
         <Route path="*" element={<Navigate to="/login" replace />} />
+
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
       </Route>
     </Routes>
   )
